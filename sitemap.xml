@@ -2,18 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://yilin.tw/2023/02/62824/</loc>
+    <loc>https://yilin.tw/404.html</loc>
     
-    <lastmod>2023-02-08</lastmod>
+    <lastmod>2023-02-18</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://yilin.tw/404.html</loc>
+    <loc>https://yilin.tw/2023/02/45797/</loc>
     
-    <lastmod>2023-02-08</lastmod>
+    <lastmod>2023-02-18</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -31,15 +31,29 @@
 
   <url>
     <loc>https://yilin.tw/</loc>
-    <lastmod>2023-02-08</lastmod>
+    <lastmod>2023-02-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   
   <url>
-    <loc>https://yilin.tw/tags/ios/</loc>
-    <lastmod>2023-02-08</lastmod>
+    <loc>https://yilin.tw/tags/IOS/</loc>
+    <lastmod>2023-02-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yilin.tw/tags/pod/</loc>
+    <lastmod>2023-02-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yilin.tw/tags/SPM/</loc>
+    <lastmod>2023-02-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -47,8 +61,8 @@
 
   
   <url>
-    <loc>https://yilin.tw/categories/xcode/</loc>
-    <lastmod>2023-02-08</lastmod>
+    <loc>https://yilin.tw/categories/%E9%96%8B%E7%99%BC/</loc>
+    <lastmod>2023-02-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
