@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Code · Yilin</title>
+  
+  <subtitle>紀錄我的 Coding Life。</subtitle>
+  <link href="https://yilin.tw/atom.xml" rel="self"/>
+  
+  <link href="https://yilin.tw/"/>
+  <updated>2024-12-04T09:32:14.454Z</updated>
+  <id>https://yilin.tw/</id>
+  
+  <author>
+    <name>Zhuang YiLin</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>【Docker】SSL自動配置與刷新container</title>
+    <link href="https://yilin.tw/2023/12/62041/"/>
+    <id>https://yilin.tw/2023/12/62041/</id>
+    <published>2023-12-01T17:39:55.000Z</published>
+    <updated>2024-12-04T09:32:14.454Z</updated>
+    
+    <content type="html"><![CDATA[<hr><br>使用 nginx-proxy 和 acme-companion 來自動配置 SSL，nginx-proxy 和 acme-companion 是兩個獨立但常一起使用的工具，用於簡化在 Nginx 反向代理上設置和管理 SSL/TLS 憑證的過程。<span id="more"></span><h1 id="介紹"><a href="#介紹" class="headerlink" title="介紹"></a>介紹</h1><ol><li><strong>nginx-proxy</strong>：<ul><li><strong><code>nginx-proxy</code></strong> 是一個 Docker 容器，用於自動化 Nginx 反向代理配置。</li><li>它可以自動檢測運行在同一主機上的其他 Docker 容器，並自動創建相應的 Nginx 反向代理配置。</li><li>通過簡單的環境變數設置，你可以指定哪些容器應該由 Nginx 代理，以及如何配置代理。</li><li><strong><code>nginx-proxy</code></strong> 使得添加、刪除或修改反向代理配置變得簡單，而不需要手動編輯 Nginx 配置文件。</li></ul></li><li><strong>acme-companion</strong>：<ul><li><strong><code>acme-companion</code></strong> 是另一個 Docker 容器，通常與 <strong><code>nginx-proxy</code></strong> 一起使用，用於管理 SSL&#x2F;TLS 憑證。</li><li>它自動處理 Let’s Encrypt 等憑證頒發機構的 SSL&#x2F;TLS 憑證申請和更新。</li><li><strong><code>acme-companion</code></strong> 與 <strong><code>nginx-proxy</code></strong> 配合使用，可以自動檢測需要 SSL&#x2F;TLS 加密的容器，然後申請和安裝相應的憑證。</li><li>它支持自動憑證更新，確保你的網站始終使用最新的有效憑證。</li></ul></li></ol><h1 id="教學"><a href="#教學" class="headerlink" title="教學"></a>教學</h1><h2 id="步驟-1：下載-docker-compose-yml-檔案"><a href="#步驟-1：下載-docker-compose-yml-檔案" class="headerlink" title="步驟 1：下載 docker-compose.yml 檔案"></a>步驟 1：<strong>下載 docker-compose.yml 檔案</strong></h2><p>在終端機中執行以下指令以下載 docker-compose.yml 檔案，並修改 <code>DEFAULT_EMAIL</code>：</p><pre class="highlight"><span class="line">curl -LO https://raw.githubusercontent.com/YiLin-Zhuang/nginx-proxy/master/docker-compose.yml</span><br><span class="line"></span><br></pre><h2 id="步驟-2：建立網路"><a href="#步驟-2：建立網路" class="headerlink" title="步驟 2：建立網路"></a>步驟 2：<strong>建立網路</strong></h2><p>在終端機中執行以下指令以建立名為 “nginx-proxy” 的網路：</p><pre class="highlight"><span class="line">docker network create nginx-proxy</span><br><span class="line"></span><br></pre><h2 id="步驟-3：啟動-nginx-proxy"><a href="#步驟-3：啟動-nginx-proxy" class="headerlink" title="步驟 3：啟動 nginx-proxy"></a>步驟 3：<strong>啟動 nginx-proxy</strong></h2><p>在終端機中執行以下指令以啟動 nginx-proxy：</p><pre class="highlight"><span class="line">docker-compose up -d</span><br><span class="line"></span><br></pre><h2 id="步驟-4：建立範例網站"><a href="#步驟-4：建立範例網站" class="headerlink" title="步驟 4：建立範例網站"></a>步驟 4：<strong>建立範例網站</strong></h2><p>在需要使用 SSL 的 docker-compose.yml 檔案中，加入 <code>VIRTUAL_HOST</code>、<code>LETSENCRYPT_HOST</code> 和 <code>networks</code>。以下範例設定以建立一個範例網站：</p><pre class="highlight"><span class="line">website:</span><br><span class="line">    image: nginx:alpine</span><br><span class="line">    container_name: website</span><br><span class="line">    restart: always</span><br><span class="line">    volumes:</span><br><span class="line">      - ./website:/usr/share/nginx/html:ro</span><br><span class="line">    environment:</span><br><span class="line">      <span class="comment"># 將 &quot;www.yourdomain.com,yourdomain.com&quot; 替換為你的網域</span></span><br><span class="line">      - VIRTUAL_HOST=www.yourdomain.com,yourdomain.com</span><br><span class="line">      - LETSENCRYPT_HOST=www.yourdomain.com,yourdomain.com</span><br><span class="line">      <span class="comment"># 如果需要指定端口，可以加入以下環境變數</span></span><br><span class="line">      <span class="comment">#- VIRTUAL_PORT=8080</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 加入 &quot;nginx-proxy&quot; 網路</span></span><br><span class="line">networks:</span><br><span class="line">  default:</span><br><span class="line">    external: <span class="literal">true</span></span><br><span class="line">    name: nginx-proxy</span><br><span class="line"></span><br></pre><p>這些步驟將幫助你設定一個 proxy server，並自動更新 SSL 證書。</p><blockquote><p><a href="https://github.com/YiLin-Zhuang/nginx-proxy/">github 連結</a>。</p></blockquote>]]></content>
+    
+    
+    <summary type="html">&lt;hr&gt;
+&lt;br&gt;
+使用 nginx-proxy 和 acme-companion 來自動配置 SSL，nginx-proxy 和 acme-companion 是兩個獨立但常一起使用的工具，用於簡化在 Nginx 反向代理上設置和管理 SSL/TLS 憑證的過程。</summary>
+    
+    
+    
+    <category term="Server" scheme="https://yilin.tw/categories/Server/"/>
+    
+    
+    <category term="nginx-proxy" scheme="https://yilin.tw/tags/nginx-proxy/"/>
+    
+    <category term="acme-companion" scheme="https://yilin.tw/tags/acme-companion/"/>
+    
+    <category term="docker" scheme="https://yilin.tw/tags/docker/"/>
+    
+    <category term="Let&#39;s Encrypt SSL" scheme="https://yilin.tw/tags/Let-s-Encrypt-SSL/"/>
+    
+    <category term="docker-compose" scheme="https://yilin.tw/tags/docker-compose/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【IOS】創建自己的 IOS 套件庫 SPM、POD</title>
+    <link href="https://yilin.tw/2023/02/45797/"/>
+    <id>https://yilin.tw/2023/02/45797/</id>
+    <published>2023-02-17T13:44:59.000Z</published>
+    <updated>2024-12-04T09:32:14.454Z</updated>
+    
+    <content type="html"><![CDATA[<hr><br><p>當你開發多個專案時，你會發現在不同的專案中，你可能會使用到一些共通的類別或方法。為了讓你的開發更有效率，你可以創建自己的套件庫，方便在不同的專案中重複使用。</p><span id="more"></span><br><table><thead><tr><th>創建套件庫</th></tr></thead><tbody><tr><td><a href="#Swift-Package-Manager">Swift Package Manager</a></td></tr><tr><td><a href="#Cocoapods">Cocoapods</a></td></tr></tbody></table><p>在 Swift 中，你可以使用 Swift Package Manager 或 Cocoapods 來創建和管理自己的套件庫。</p><br><h1 id="Swift-Package-Manager"><a href="#Swift-Package-Manager" class="headerlink" title="Swift Package Manager"></a>Swift Package Manager</h1><h2 id="1-創建-Package"><a href="#1-創建-Package" class="headerlink" title="1. 創建 Package"></a>1. 創建 Package</h2><p>首先，你需要創建一個 Swift Package。在終端機中，進入你要創建套件庫的資料夾，並執行以下命令：</p><pre class="highlight"><span class="line">swift package <span class="keyword">init</span> <span class="operator">--</span>type library</span><br></pre><p>這會創建一個基本的 Swift Package，並且將它設置為一個庫。</p><h2 id="2-編輯-Package-swift"><a href="#2-編輯-Package-swift" class="headerlink" title="2. 編輯 Package.swift"></a>2. 編輯 Package.swift</h2><p>下一步，你需要打開創建的 Swift Package 的 Package.swift 檔案，編輯它以符合你的需求。在這個檔案中，你可以指定你的套件的名稱、目標平台、依賴項等等。你可以在這裡指定你的套件支援的 iOS 版本和 Swift 版本：</p><pre class="highlight"><span class="line">// swift-tools-version:5.5</span><br><span class="line">// The swift-tools-version declares the minimum version of Swift required to build this package.</span><br><span class="line"></span><br><span class="line">import PackageDescription</span><br><span class="line"></span><br><span class="line">let package = Package(</span><br><span class="line">    name: &quot;ZYLKit&quot;, // YourPackageName</span><br><span class="line">    platforms: [.iOS(.v13)],</span><br><span class="line">    products: [</span><br><span class="line">        .library(</span><br><span class="line">            name: &quot;ZYLKit&quot;, // YourPackageName</span><br><span class="line">            targets: [&quot;ZYLKit&quot;]), // YourPackageName</span><br><span class="line">    ],</span><br><span class="line">    dependencies: [</span><br><span class="line">    ],</span><br><span class="line">    targets: [</span><br><span class="line">        .target(</span><br><span class="line">            name: &quot;ZYLKit&quot;, // YourPackageName</span><br><span class="line">            dependencies: []),</span><br><span class="line">        .testTarget(</span><br><span class="line">            name: &quot;ZYLKitTests&quot;, // YourPackageNameTests</span><br><span class="line">            dependencies: [&quot;ZYLKit&quot;]), // YourPackageName</span><br><span class="line">    ],</span><br><span class="line">    swiftLanguageVersions: [.v5]</span><br><span class="line">)</span><br></pre><h2 id="3-放入檔案"><a href="#3-放入檔案" class="headerlink" title="3. 放入檔案"></a>3. 放入檔案</h2><p>接下來，你可以將你的類別和方法加入到你的套件中。將你的檔案放在 Sources&#x2F;YourPackageName 資料夾下。請注意，你的類別和方法需要加上 public 修飾符，以便在其他專案中使用。</p><h2 id="4-上傳至-GitHub"><a href="#4-上傳至-GitHub" class="headerlink" title="4. 上傳至 GitHub"></a>4. 上傳至 GitHub</h2><p>接下來，你需要將你的套件推送到 GitHub。請確保你的專案是公開的，以便其他人可以使用你的套件。</p><br><h1 id="Cocoapods"><a href="#Cocoapods" class="headerlink" title="Cocoapods"></a>Cocoapods</h1><h2 id="1-創建-podspec-文件"><a href="#1-創建-podspec-文件" class="headerlink" title="1. 創建 podspec 文件"></a>1. 創建 podspec 文件</h2><p>在你的套件包中添加 套件名.podspec 文件，該文件包含以下內容：</p><pre class="highlight"><span class="line">Pod::Spec.new do |s|</span><br><span class="line">s.name = &#x27;ZYLKit&#x27; # 套件名稱</span><br><span class="line">s.version = &#x27;0.1.0&#x27; # 套件版本</span><br><span class="line">s.summary = &#x27;一些好用的方法與封裝元件&#x27; # 套件說明</span><br><span class="line">s.homepage = &#x27;https://github.com/sdf0822/ZYLKit&#x27; # git URL</span><br><span class="line">s.license = &#123; :type =&gt; &#x27;MIT&#x27;, :file =&gt; &#x27;LICENSE&#x27; &#125; # LICENSE(可使用 github 產生)</span><br><span class="line">s.author = &#123; &#x27;yiLin&#x27; =&gt; &#x27;sdf0822@gmail.com&#x27; &#125; # 作者</span><br><span class="line">s.source = &#123; :git =&gt; &#x27;https://github.com/sdf0822/ZYLKit.git&#x27;, :tag =&gt; s.version &#125;  </span><br><span class="line">s.ios.deployment_target = &#x27;13.0&#x27; </span><br><span class="line">s.swift_version = &#x27;5.0&#x27; </span><br><span class="line">s.source_files = &#x27;Sources/ZYLKit/**/*&#x27; </span><br><span class="line">end</span><br></pre><h2 id="2-添加版本號-Tag"><a href="#2-添加版本號-Tag" class="headerlink" title="2. 添加版本號 Tag"></a>2. 添加版本號 Tag</h2><p>在 GitHub 上創建一個與 podspec 版本號一致的 Tag，例如 0.1.0，並將其發佈到 GitHub 上。</p><h2 id="3-檢查是否有錯誤"><a href="#3-檢查是否有錯誤" class="headerlink" title="3. 檢查是否有錯誤"></a>3. 檢查是否有錯誤</h2><p>在終端中輸入 <code>pod spec lint</code> 進行檢查，如果有錯誤則逐一解決。</p><h2 id="4-註冊-session"><a href="#4-註冊-session" class="headerlink" title="4. 註冊 session"></a>4. 註冊 session</h2><p>輸入 <code>pod trunk register &quot;YourEmail&quot; &#39;YourName&#39; --description=&#39;imac&#39;</code> 進行郵箱驗證。</p><h2 id="5-檢查-session"><a href="#5-檢查-session" class="headerlink" title="5. 檢查 session"></a>5. 檢查 session</h2><p>然後輸入 <code>pod trunk me</code> 檢查你是否已經登錄到 Cocoapods 服務器。</p><h2 id="6-推送到-trunk"><a href="#6-推送到-trunk" class="headerlink" title="6. 推送到 trunk"></a>6. 推送到 trunk</h2><p>推送套件到 Cocoapods 服務器，使用 <code>pod trunk push</code> 套件名.podspec 命令即可。<br>等待官方審核後，即可使用 Cocoapods 將自己的套件導入到其他項目中，以上是整個流程的簡單介紹。</p><blockquote><p>你可以參照我的套件 <a href="https://github.com/YiLin-Zhuang/ZYLKit">連結</a> 瞭解更多細節。</p></blockquote>]]></content>
+    
+    
+    <summary type="html">&lt;hr&gt;
+&lt;br&gt;
+
+&lt;p&gt;當你開發多個專案時，你會發現在不同的專案中，你可能會使用到一些共通的類別或方法。為了讓你的開發更有效率，你可以創建自己的套件庫，方便在不同的專案中重複使用。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="IOS" scheme="https://yilin.tw/categories/IOS/"/>
+    
+    
+    <category term="IOS" scheme="https://yilin.tw/tags/IOS/"/>
+    
+    <category term="pod" scheme="https://yilin.tw/tags/pod/"/>
+    
+    <category term="SPM" scheme="https://yilin.tw/tags/SPM/"/>
+    
+  </entry>
+  
+</feed>
